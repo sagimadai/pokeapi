@@ -1,0 +1,86 @@
+import requests
+import random
+import json
+import os
+
+
+data_base_file = "pokemon_data_base.json"
+
+def ask_user():
+    answer = input("Do you want to draw a Pokemon? (yes/no): ").strip().lower()
+    if answer == "yes":
+        return True
+    else:
+        print("Goodbye!")
+        return False
+
+def get_pokemon_list():
+    url = "https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data['results']
+    else:
+        print("Failed to get pokemon list")
+        return []
+
+def choose_random_pokemon(pokemon_list):
+    return random.choice(pokemon_list)
+
+def load_pokemon_data_base():
+    if os.path.exists(data_base_file):
+        with open(data_base_file, "r") as file:
+            return json.load(file)
+    else:
+        return {}
+
+def save_pokemon_data_base(data):
+    with open(data_base_file, "w") as file:
+        json.dump(data, file, indent=4)
+
+##############################################
+
+if ask_user():
+    print("Drawing a Pokémon...")
+
+    pokemon_list = get_pokemon_list()
+    if pokemon_list:
+        random_pokemon = choose_random_pokemon(pokemon_list)
+        print("Random Pokémon:", random_pokemon['name'])
+
+        # טוענים את מסד הנתונים
+        db = load_pokemon_data_base()
+        pokemon_name = random_pokemon['name']
+
+        if pokemon_name in db:
+            print("Pokémon already in database:")
+            pokemon_data = db[pokemon_name]
+        else:
+            print("Fetching new Pokémon data from API...")
+            response = requests.get(random_pokemon['url'])
+            if response.status_code == 200:
+                data = response.json()
+                # שמירת שלושה שדות לדוגמה
+                pokemon_data = {
+                    "name": data["name"],
+                    "height": data["height"],
+                    "weight": data["weight"]
+                }
+                # מוסיפים למסד ושומרים לקובץ
+                db[pokemon_name] = pokemon_data
+                save_pokemon_data_base(db)
+            else:
+                print("Failed to fetch Pokémon data.")
+                pokemon_data = None
+
+        # מציגים את המידע
+        if pokemon_data:
+            print("Pokémon Info:")
+            print(f"Name: {pokemon_data['name']}")
+            print(f"Height: {pokemon_data['height']}")
+            print(f"Weight: {pokemon_data['weight']}")
+    else:
+        print("No Pokémon found")
+else:
+    # במקרה שהמשתמש לא רוצה להמשיך
+    print("Goodbye!")
