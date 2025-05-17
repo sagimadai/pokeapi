@@ -48,7 +48,7 @@ if ask_user():
         random_pokemon = choose_random_pokemon(pokemon_list)
         print("Random Pokémon:", random_pokemon['name'])
 
-        # טוענים את מסד הנתונים
+        
         db = load_pokemon_data_base()
         pokemon_name = random_pokemon['name']
 
@@ -60,20 +60,20 @@ if ask_user():
             response = requests.get(random_pokemon['url'])
             if response.status_code == 200:
                 data = response.json()
-                # שמירת שלושה שדות לדוגמה
+                
                 pokemon_data = {
                     "name": data["name"],
                     "height": data["height"],
                     "weight": data["weight"]
                 }
-                # מוסיפים למסד ושומרים לקובץ
+                
                 db[pokemon_name] = pokemon_data
                 save_pokemon_data_base(db)
             else:
                 print("Failed to fetch Pokémon data.")
                 pokemon_data = None
 
-        # מציגים את המידע
+        
         if pokemon_data:
             print("Pokémon Info:")
             print(f"Name: {pokemon_data['name']}")
@@ -82,5 +82,5 @@ if ask_user():
     else:
         print("No Pokémon found")
 else:
-    # במקרה שהמשתמש לא רוצה להמשיך
+    
     print("Goodbye!")
